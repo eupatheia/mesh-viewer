@@ -21,17 +21,14 @@ class MeshViewer : public Window {
   MeshViewer() : Window() {  }
 
   void setup() override {
-    // mesh.load("../models/cube.ply");
     modelNames = GetFilenamesInDir("../models", "ply");
     string path = "../models/";  // path to models directory
     // load all meshes
-    // for (int i = 0; i < modelNames.size(); i++) {
-    //   PLYMesh m(path + modelNames[i]);
-    //   cout << "Loading: " << path + modelNames[i] << endl;
-    //   meshes.push_back(m);
-    // }
-    PLYMesh m(string("../models/") + modelNames[currentModel]);
-    mesh = m;
+    for (int i = 0; i < modelNames.size(); i++) {
+      PLYMesh m(path + modelNames[i]);
+      cout << "Loading: " << path + modelNames[i] << endl;
+      meshes.push_back(m);
+    }
   }
 
   void mouseMotion(int x, int y, int dx, int dy) override {
@@ -88,8 +85,6 @@ class MeshViewer : public Window {
       }
       cout << "Loading: " << currentModel << " " << modelNames[currentModel]
           << endl;
-      PLYMesh m(string("../models/") + modelNames[currentModel]);
-      mesh = m;
     } else if (key == GLFW_KEY_P && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
       cout << "Pressed P: previous model: " << endl;
       if (currentModel == 0) {
@@ -100,8 +95,6 @@ class MeshViewer : public Window {
       }
       cout << "Loading: " << currentModel << " " << modelNames[currentModel]
           << endl;
-      PLYMesh m(string("../models/") + modelNames[currentModel]);
-      mesh = m;
     }
   }
 
@@ -110,21 +103,20 @@ class MeshViewer : public Window {
     renderer.perspective(glm::radians(60.0f), aspect, 0.1f, 50.0f);
     renderer.lookAt(eyePos, lookPos, up);
     // fit to 10x10x10 view volume
-    vec3 maxBounds = mesh.maxBounds();
-    vec3 minBounds = mesh.minBounds();
+    vec3 maxBounds = meshes[currentModel].maxBounds();
+    vec3 minBounds = meshes[currentModel].minBounds();
     vec3 sizes = maxBounds - minBounds;
     float factor = 10.0f / fmax((fmax(sizes.x, sizes.y)), sizes.z);
     renderer.rotate(vec3(0,0,0));
     renderer.scale(vec3(factor));
     renderer.translate(-vec3((minBounds + (sizes / 2.0f))));
-    renderer.mesh(mesh);
+    renderer.mesh(meshes[currentModel]);
     // renderer.cube(); // for debugging!
   }
 
  protected:
-  PLYMesh mesh;
   std::vector<string> modelNames;
-  // std::vector<PLYMesh> meshes;
+  std::vector<PLYMesh> meshes;
   int currentModel = 0;  // index of currently loaded model in modelNames
   float radius = 10;  // radius of viewing sphere
   vec3 eyePos = vec3(radius, 0, 0);
