@@ -4,6 +4,7 @@
 // Description: Loads PLY files in ASCII format
 //--------------------------------------------------
 
+#include <cstring>
 #include "plymesh.h"
 
 using namespace std;
