@@ -1,6 +1,6 @@
 //--------------------------------------------------
 // Author: JL
-// Date: 2 March 2023
+// Date: 3 March 2023
 // Description: Loads PLY files in ASCII format
 //--------------------------------------------------
 
@@ -12,22 +12,22 @@ using namespace glm;
 namespace agl {
 
   PLYMesh::PLYMesh(const std::string& filename) {
-    float _xmin = FLT_MAX;
-    float _xmax = -FLT_MAX;
-    float _ymin = FLT_MAX;
-    float _ymax = -FLT_MAX;
-    float _zmin = FLT_MAX;
-    float _zmax = -FLT_MAX;
+    _xmin = FLT_MAX;
+    _xmax = -FLT_MAX;
+    _ymin = FLT_MAX;
+    _ymax = -FLT_MAX;
+    _zmin = FLT_MAX;
+    _zmax = -FLT_MAX;
     load(filename);
   }
 
   PLYMesh::PLYMesh() {
-    float _xmin = FLT_MAX;
-    float _xmax = -FLT_MAX;
-    float _ymin = FLT_MAX;
-    float _ymax = -FLT_MAX;
-    float _zmin = FLT_MAX;
-    float _zmax = -FLT_MAX;
+    _xmin = FLT_MAX;
+    _xmax = -FLT_MAX;
+    _ymin = FLT_MAX;
+    _ymax = -FLT_MAX;
+    _zmin = FLT_MAX;
+    _zmax = -FLT_MAX;
   }
 
   void PLYMesh::init() {
@@ -39,8 +39,8 @@ namespace agl {
 
   bool PLYMesh::load(const std::string& filename) {
     if (_positions.size() != 0) {
-        std::cout << "WARNING: Cannot load different files with the same PLY mesh\n";
-        return false;
+      std::cout << "WARNING: Cannot load different files with same PLY mesh\n";
+      return false;
     }
     FILE * file = fopen(filename.c_str(), "r");
     if (file == NULL) {
@@ -126,7 +126,8 @@ namespace agl {
     return _faces;
   }
 
-  void PLYMesh::updateBoundingBox(const float x, const float y, const float z) {
+  void PLYMesh::updateBoundingBox(const float x, const float y,
+      const float z) {
     if (x > _xmax) {
       _xmax = x;
     }

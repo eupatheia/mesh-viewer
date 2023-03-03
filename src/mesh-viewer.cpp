@@ -1,7 +1,8 @@
 //--------------------------------------------------
 // Author: JL
-// Date: 2 March 2023
-// Description: Visualizes a ply file in 3D
+// Date: 3 March 2023
+// Description: Visualizes ply files in 3D,
+// implements orbit camera controls
 //--------------------------------------------------
 
 #include <cmath>
@@ -34,9 +35,18 @@ class MeshViewer : public Window {
   }
 
   void mouseMotion(int x, int y, int dx, int dy) override {
-    printf("Mouse moved (%d, %d) to (%d, %d)\n", dx, dy, x, y);
     if (dragging) {
-      // float azimuth = acos((vec3(dx)))
+      float azimuth = (float) x / width() * 2.0f * M_PI;
+      float elevation = (((float) y / height()) - 0.5) * M_PI;
+      eyePos = radius * vec3(sin(azimuth) * cos(elevation), sin(elevation),
+          cos(azimuth) * cos(elevation));  // x-axis, forward direction
+      vec3 right = cross(eyePos, vec3(0, 1, 0));  // z-axis
+      up = cross(eyePos, right);  // y-axis
+    }
+    if (scrolling) {
+      eyePos /= radius;
+      radius += dy / (height() * 0.05f);
+      eyePos *= radius;
     }
   }
 
@@ -44,6 +54,8 @@ class MeshViewer : public Window {
     cout << "Mouse DOWN" << endl;
     if (button == GLFW_MOUSE_BUTTON_LEFT && mods == 0) {
       dragging = true;
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT && mods == GLFW_MOD_SHIFT) {
+      scrolling = true;
     }
   }
 
@@ -51,11 +63,18 @@ class MeshViewer : public Window {
     cout << "Mouse UP" << endl;
     if (button == GLFW_MOUSE_BUTTON_LEFT && mods == 0) {
       dragging = false;
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT && mods == GLFW_MOD_SHIFT) {
+      scrolling = false;
     }
   }
 
   void scroll(float dx, float dy) override {
     printf("Scrolled (%f, %f)\n", dx, dy);
+    eyePos /= radius;
+    // scrolling down is positive dy, increase radius, zoom out
+    // scrolling up is negative dy, decrease radius, zoom in
+    radius += dy;
+    eyePos *= radius;
   }
 
   void keyUp(int key, int mods) override {
@@ -67,7 +86,8 @@ class MeshViewer : public Window {
       } else {
         currentModel++;
       }
-      cout << "Loading: " << currentModel << " " << modelNames[currentModel] << endl;
+      cout << "Loading: " << currentModel << " " << modelNames[currentModel]
+          << endl;
       PLYMesh m(string("../models/") + modelNames[currentModel]);
       mesh = m;
     } else if (key == GLFW_KEY_P && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
@@ -78,7 +98,8 @@ class MeshViewer : public Window {
       } else {
         currentModel--;
       }
-      cout << "Loading: " << currentModel << " " << modelNames[currentModel] << endl;
+      cout << "Loading: " << currentModel << " " << modelNames[currentModel]
+          << endl;
       PLYMesh m(string("../models/") + modelNames[currentModel]);
       mesh = m;
     }
@@ -105,11 +126,12 @@ class MeshViewer : public Window {
   std::vector<string> modelNames;
   // std::vector<PLYMesh> meshes;
   int currentModel = 0;  // index of currently loaded model in modelNames
-  vec3 eyePos = vec3(10, 0, 0);
+  float radius = 10;  // radius of viewing sphere
+  vec3 eyePos = vec3(radius, 0, 0);
   vec3 lookPos = vec3(0, 0, 0);
   vec3 up = vec3(0, 1, 0);
   bool dragging = false;  // if true, compute change in camPos
-  float radius = 10;
+  bool scrolling = false;  // if true, change radius
 };
 
 int main(int argc, char** argv) {
