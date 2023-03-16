@@ -41,10 +41,16 @@ class MeshViewer : public Window {
 
   void mouseMotion(int x, int y, int dx, int dy) override {
     if (dragging) {
-      float azimuth = (float) x / width() * 2.0f * M_PI;
-      float elevation = (((float) y / height()) - 0.5) * M_PI;
-      eyePos = radius * vec3(sin(azimuth) * cos(elevation), sin(elevation),
-          cos(azimuth) * cos(elevation));  // x-axis, forward direction
+      azimuth = (azimuth + dx) % 360;
+      elevation = elevation + dy;
+      // convert to degrees to radians
+      float azimuthRad = azimuth * M_PI / 180.0f;
+      float elevationRad = elevation * M_PI / 180.0f;
+      // sin to squish to range [-90, 90] then convert back to radians
+      elevationRad = (90 * sin(elevationRad)) * M_PI / 180.0f;
+      // x-axis, out-of-screen direction
+      eyePos = radius * vec3(sin(azimuthRad) * cos(elevationRad),
+          sin(elevationRad), cos(azimuthRad) * cos(elevationRad));
       vec3 right = cross(eyePos, vec3(0, 1, 0));  // z-axis
       up = cross(eyePos, right);  // y-axis
     }
@@ -121,13 +127,13 @@ class MeshViewer : public Window {
     // blue plastic material
     renderer.setUniform("material.shine", 50.0f);
     renderer.setUniform("material.Ka", vec3(0,0,0.2f));
-    renderer.setUniform("material.Kd", vec3(0,0,0.7f));
+    renderer.setUniform("material.Kd", vec3(0,0.3,0.7f));
     renderer.setUniform("material.Ks", vec3(1.0f));
     // gold material
     // renderer.setUniform("material.shine", 83.2f);
     // renderer.setUniform("material.Ka", vec3(0.24725f, 0.2245f, 0.0645f));
     // renderer.setUniform("material.Kd", vec3(0.34615f, 0.3143f, 0.0903f));
-    // renderer.setUniform("material.Ks", vec3(0.797357f, 0.723991f, 0.208006f));
+    // renderer.setUniform("material.Ks", vec3(0.797357f, 0.72399f, 0.20801f));
 
     float aspect = ((float) width()) / height();
     renderer.perspective(glm::radians(60.0f), aspect, 0.1f, 50.0f);
@@ -137,7 +143,7 @@ class MeshViewer : public Window {
     vec3 minBounds = meshes[currentModel].minBounds();
     vec3 sizes = maxBounds - minBounds;
     float factor = 10.0f / fmax((fmax(sizes.x, sizes.y)), sizes.z);
-    renderer.rotate(vec3(0,180,0));
+    renderer.rotate(vec3(0,0,M_PI));  // in euler angles (radians)
     renderer.scale(vec3(factor));
     renderer.translate(-vec3((minBounds + (sizes / 2.0f))));
     renderer.mesh(meshes[currentModel]);
@@ -155,7 +161,9 @@ class MeshViewer : public Window {
   float radius = 10;  // radius of viewing sphere
   vec3 eyePos = vec3(radius, 0, 0);
   vec3 lookPos = vec3(0, 0, 0);
-  vec3 up = vec3(0, 1, 0);
+  vec3 up = vec3(0, -1, 0);
+  int azimuth = 90;  // in degrees 0 to 360
+  int elevation = 0;  // in degrees, no limit
   bool dragging = false;  // if true, compute change in camPos
   bool scrolling = false;  // if true, change radius
 };
@@ -165,4 +173,3 @@ int main(int argc, char** argv) {
   viewer.run();
   return 0;
 }
-
