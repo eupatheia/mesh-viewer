@@ -9,7 +9,10 @@ uniform mat4 ModelViewMatrix;
 uniform mat4 MVP;
 uniform bool HasUV;
 
-void main()
-{
-   gl_Position = MVP * vec4(vPos, 1.0);
+out vec3 color;
+
+void main() {
+  // calculate color based on normal
+  color = (vNormal + 1) / 2.0;
+  gl_Position = MVP * vec4(vPos, 1.0);
 }

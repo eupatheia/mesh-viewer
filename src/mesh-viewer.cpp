@@ -29,6 +29,13 @@ class MeshViewer : public Window {
       cout << "Loading: " << path + modelNames[i] << endl;
       meshes.push_back(m);
     }
+    // load all shaders
+    renderer.loadShader("normals", "../shaders/normals.vs",
+        "../shaders/normals.fs");
+    renderer.loadShader("phong-vertex", "../shaders/phong-vertex.vs",
+        "../shaders/phong-vertex.fs");
+    renderer.loadShader("phong-pixel", "../shaders/phong-pixel.vs",
+        "../shaders/phong-pixel.fs");
   }
 
   void mouseMotion(int x, int y, int dx, int dy) override {
@@ -66,7 +73,6 @@ class MeshViewer : public Window {
   }
 
   void scroll(float dx, float dy) override {
-    printf("Scrolled (%f, %f)\n", dx, dy);
     eyePos /= radius;
     // scrolling down is positive dy, increase radius, zoom out
     // scrolling up is negative dy, decrease radius, zoom in
@@ -76,29 +82,52 @@ class MeshViewer : public Window {
 
   void keyUp(int key, int mods) override {
     if (key == GLFW_KEY_N && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
-      cout << "Pressed N: next model: " << endl;
       if (currentModel == modelNames.size() - 1) {
         // loop back to beginning
         currentModel = 0;
       } else {
         currentModel++;
       }
-      cout << "Loading: " << currentModel << " " << modelNames[currentModel]
-          << endl;
+      cout << "Pressed N: next model: " << currentModel << " "
+          << modelNames[currentModel] << endl;
     } else if (key == GLFW_KEY_P && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
-      cout << "Pressed P: previous model: " << endl;
       if (currentModel == 0) {
         // loop back to end
         currentModel = modelNames.size() - 1;
       } else {
         currentModel--;
       }
-      cout << "Loading: " << currentModel << " " << modelNames[currentModel]
-          << endl;
+      cout << "Pressed P: previous model: " << currentModel << " "
+          << modelNames[currentModel] << endl;
+    } else if (key == GLFW_KEY_S && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
+      if (currentShader == shaderNames.size() - 1) {
+        // loop back to beginning
+        currentShader = 0;
+      } else {
+        currentShader++;
+      }
+      cout << "Pressed S: next shader: " << currentShader << " "
+          << shaderNames[currentShader] << endl;
     }
   }
 
   void draw() override {
+    renderer.beginShader(shaderNames[currentShader]);
+    renderer.setUniform("light.pos", vec4(20.0f,10.0f,-10.0f,1.0f));
+    renderer.setUniform("light.La", vec3(1.0f));
+    renderer.setUniform("light.Ld", vec3(1.0f));
+    renderer.setUniform("light.Ls", vec3(1.0f));
+    // blue plastic material
+    renderer.setUniform("material.shine", 50.0f);
+    renderer.setUniform("material.Ka", vec3(0,0,0.2f));
+    renderer.setUniform("material.Kd", vec3(0,0,0.7f));
+    renderer.setUniform("material.Ks", vec3(1.0f));
+    // gold material
+    // renderer.setUniform("material.shine", 83.2f);
+    // renderer.setUniform("material.Ka", vec3(0.24725f, 0.2245f, 0.0645f));
+    // renderer.setUniform("material.Kd", vec3(0.34615f, 0.3143f, 0.0903f));
+    // renderer.setUniform("material.Ks", vec3(0.797357f, 0.723991f, 0.208006f));
+
     float aspect = ((float) width()) / height();
     renderer.perspective(glm::radians(60.0f), aspect, 0.1f, 50.0f);
     renderer.lookAt(eyePos, lookPos, up);
@@ -107,17 +136,21 @@ class MeshViewer : public Window {
     vec3 minBounds = meshes[currentModel].minBounds();
     vec3 sizes = maxBounds - minBounds;
     float factor = 10.0f / fmax((fmax(sizes.x, sizes.y)), sizes.z);
-    renderer.rotate(vec3(0,0,0));
+    renderer.rotate(vec3(0,180,0));
     renderer.scale(vec3(factor));
     renderer.translate(-vec3((minBounds + (sizes / 2.0f))));
     renderer.mesh(meshes[currentModel]);
     // renderer.cube(); // for debugging!
+
+    renderer.endShader();
   }
 
  protected:
   std::vector<string> modelNames;
   std::vector<PLYMesh> meshes;
   int currentModel = 0;  // index of currently loaded model in modelNames
+  std::vector<string> shaderNames = {"normals", "phong-vertex", "phong-pixel"};
+  int currentShader = 0;  // index of currently loaded shader in shaderNames
   float radius = 10;  // radius of viewing sphere
   vec3 eyePos = vec3(radius, 0, 0);
   vec3 lookPos = vec3(0, 0, 0);
