@@ -1,3 +1,9 @@
+/* normals.fs
+ * fragment shader for color by normal
+ * @author JL
+ * @version March 16, 2023
+ */
+
 #version 400
 
 in vec3 color;

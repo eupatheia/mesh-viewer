@@ -1,3 +1,9 @@
+/* phong-pixel.fs
+ * fragment shader for per-pixel phong shading
+ * @author JL
+ * @version March 16, 2023
+ */
+
 #version 400
 
 struct Light {

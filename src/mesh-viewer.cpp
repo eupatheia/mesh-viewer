@@ -1,8 +1,9 @@
 //--------------------------------------------------
 // Author: JL
-// Date: 3 March 2023
+// Date: 16 March 2023
 // Description: Visualizes ply files in 3D,
-// implements orbit camera controls
+// implements orbit camera controls,
+// switching through models, and switching through shaders
 //--------------------------------------------------
 
 #include <cmath>
@@ -149,7 +150,7 @@ class MeshViewer : public Window {
   std::vector<string> modelNames;
   std::vector<PLYMesh> meshes;
   int currentModel = 0;  // index of currently loaded model in modelNames
-  std::vector<string> shaderNames = {"normals", "phong-vertex", "phong-pixel"};
+  std::vector<string> shaderNames = {"phong-pixel", "phong-vertex", "normals"};
   int currentShader = 0;  // index of currently loaded shader in shaderNames
   float radius = 10;  // radius of viewing sphere
   vec3 eyePos = vec3(radius, 0, 0);

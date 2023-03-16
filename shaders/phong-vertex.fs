@@ -1,3 +1,9 @@
+/* phong-vertex.fs
+ * fragment shader for per-vertex phong shading
+ * @author JL
+ * @version March 16, 2023
+ */
+
 #version 400
 
 in vec3 lightIntensity;

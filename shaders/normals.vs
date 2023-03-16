@@ -1,3 +1,9 @@
+/* normals.vs
+ * vertex shader that computes color according to the normal
+ * @author JL
+ * @version March 16, 2023
+ */
+
 #version 400
 
 layout (location = 0) in vec3 vPos;

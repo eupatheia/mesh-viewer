@@ -1,3 +1,9 @@
+/* phong-pixel.vs
+ * vertex shader that computes per-pixel phong shading
+ * @author JL
+ * @version March 16, 2023
+ */
+
 #version 400
 
 layout (location = 0) in vec3 vPos;
