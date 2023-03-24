@@ -33,7 +33,11 @@ namespace agl {
 
   void PLYMesh::init() {
     assert(_positions.size() != 0);
-    initBuffers(&_faces, &_positions, &_normals);
+    if (_hasTexCoords) {
+      initBuffers(&_faces, &_positions, &_normals, &_texCoords);
+    } else {
+      initBuffers(&_faces, &_positions, &_normals);
+    }
   }
 
   PLYMesh::~PLYMesh() {  }
@@ -60,22 +64,37 @@ namespace agl {
       fgets(line, 1024, file);
     }
     int numVertices;
+    int count = 0;  // number of vertex properties
     sscanf(line, "element vertex %d", &numVertices);
     fgets(line, 1024, file);
     // skip over property definitions
     while (line[0] != 'e') {
+      count++;
       fgets(line, 1024, file);
+    }
+    if (count > 6) {
+      _hasTexCoords = 1;
+    } else {
+      _hasTexCoords = 0;
     }
     int numFaces;
     sscanf(line, "element face %d", &numFaces);
     fgets(line, 1024, file);  // skip "property" line
     fgets(line, 1024, file);  // skip "end_header"
     // read in vertex data
-    float x, y, z, nx, ny, nz;
+    float x, y, z, nx, ny, nz, s, t;
     for (int i = 0; i < numVertices; i++) {
       fgets(line, 1024, file);
-      // six values per vertex
-      sscanf(line, "%f %f %f %f %f %f", &x, &y, &z, &nx, &ny, &nz);
+      if (_hasTexCoords) {
+        // eight values per vertex
+        sscanf(line, "%f %f %f %f %f %f %f %f", &x, &y, &z, &nx, &ny, &nz,
+            &s, &t);
+        _texCoords.push_back(s);
+        _texCoords.push_back(t);
+      } else {
+        // six values per vertex
+        sscanf(line, "%f %f %f %f %f %f", &x, &y, &z, &nx, &ny, &nz);
+      }
       // update bounding box values
       updateBoundingBox(x, y, z);
       _positions.push_back(x);
@@ -125,6 +144,16 @@ namespace agl {
 
   const std::vector<GLuint>& PLYMesh::indices() const {
     return _faces;
+  }
+
+    // Return whether file has UV coordinates
+  int PLYMesh::hasUV() const {
+    return _hasTexCoords;
+  }
+
+  // Normals in this model
+  const std::vector<GLfloat>& PLYMesh::texCoords() const {
+    return _texCoords;
   }
 
   void PLYMesh::updateBoundingBox(const float x, const float y,

@@ -1,6 +1,6 @@
 //--------------------------------------------------
 // Author: JL
-// Date: 16 March 2023
+// Date: 23 March 2023
 // Description: Visualizes ply files in 3D,
 // implements orbit camera controls,
 // switching through models, and switching through shaders
@@ -37,6 +37,16 @@ class MeshViewer : public Window {
         "../shaders/phong-vertex.fs");
     renderer.loadShader("phong-pixel", "../shaders/phong-pixel.vs",
         "../shaders/phong-pixel.fs");
+    renderer.loadShader("toon", "../shaders/toon.vs",
+        "../shaders/toon.fs");
+    renderer.loadShader("spotlight", "../shaders/spotlight.vs",
+        "../shaders/spotlight.fs");
+    renderer.loadShader("texture", "../shaders/texture.vs",
+        "../shaders/texture.fs");
+    // load textures
+    renderer.loadTexture("bricks", "../textures/bricks.png", 0);
+    renderer.loadTexture("green", "../textures/green.png", 1);
+    renderer.loadTexture("glass", "../textures/glass.png", 2);
   }
 
   void mouseMotion(int x, int y, int dx, int dy) override {
@@ -115,25 +125,38 @@ class MeshViewer : public Window {
       }
       cout << "Pressed S: next shader: " << currentShader << " "
           << shaderNames[currentShader] << endl;
+    } else if (key == GLFW_KEY_T && (mods == 0 || mods == GLFW_MOD_SHIFT)) {
+      if (currentTexture == textureNames.size() - 1) {
+        // loop back to beginning
+        currentTexture = 0;
+      } else {
+        currentTexture++;
+      }
+      cout << "Pressed T: next texture: " << currentTexture << " "
+          << textureNames[currentTexture] << endl;
     }
   }
 
   void draw() override {
     renderer.beginShader(shaderNames[currentShader]);
+    renderer.texture("diffuseTexture", textureNames[currentTexture]);
+
     renderer.setUniform("light.pos", vec4(20.0f,10.0f,-10.0f,1.0f));
     renderer.setUniform("light.La", vec3(1.0f));
     renderer.setUniform("light.Ld", vec3(1.0f));
     renderer.setUniform("light.Ls", vec3(1.0f));
+    renderer.setUniform("light.exponent", 10.0f);
+    renderer.setUniform("light.cutoff", 20.0f);
     // blue plastic material
-    renderer.setUniform("material.shine", 50.0f);
-    renderer.setUniform("material.Ka", vec3(0,0,0.2f));
-    renderer.setUniform("material.Kd", vec3(0,0.3,0.7f));
-    renderer.setUniform("material.Ks", vec3(1.0f));
+    // renderer.setUniform("material.shine", 50.0f);
+    // renderer.setUniform("material.Ka", vec3(0,0,0.2f));
+    // renderer.setUniform("material.Kd", vec3(0,0.3,0.7f));
+    // renderer.setUniform("material.Ks", vec3(1.0f));
     // gold material
-    // renderer.setUniform("material.shine", 83.2f);
-    // renderer.setUniform("material.Ka", vec3(0.24725f, 0.2245f, 0.0645f));
-    // renderer.setUniform("material.Kd", vec3(0.34615f, 0.3143f, 0.0903f));
-    // renderer.setUniform("material.Ks", vec3(0.797357f, 0.72399f, 0.20801f));
+    renderer.setUniform("material.shine", 83.2f);
+    renderer.setUniform("material.Ka", vec3(0.24725f, 0.2245f, 0.0645f));
+    renderer.setUniform("material.Kd", vec3(0.34615f, 0.3143f, 0.0903f));
+    renderer.setUniform("material.Ks", vec3(0.797357f, 0.72399f, 0.20801f));
 
     float aspect = ((float) width()) / height();
     renderer.perspective(glm::radians(60.0f), aspect, 0.1f, 50.0f);
@@ -155,9 +178,12 @@ class MeshViewer : public Window {
  protected:
   std::vector<string> modelNames;
   std::vector<PLYMesh> meshes;
+  std::vector<string> shaderNames = {"phong-pixel", "phong-vertex", "normals",
+      "toon", "spotlight", "texture"};
+  std::vector<string> textureNames = {"bricks", "green", "glass"};
   int currentModel = 0;  // index of currently loaded model in modelNames
-  std::vector<string> shaderNames = {"phong-pixel", "phong-vertex", "normals"};
   int currentShader = 0;  // index of currently loaded shader in shaderNames
+  int currentTexture = 0;  // index of currently loaded texture in textureNames
   float radius = 10;  // radius of viewing sphere
   vec3 eyePos = vec3(radius, 0, 0);
   vec3 lookPos = vec3(0, 0, 0);

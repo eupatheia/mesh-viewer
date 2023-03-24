@@ -45,6 +45,12 @@ namespace agl {
     // Face indices in this model
     const std::vector<GLuint>& indices() const;
 
+    // Return whether file has UV coordinates
+    int hasUV() const;
+
+    // UVs in this model
+    const std::vector<GLfloat>& texCoords() const;
+
    protected:
     void init();
     // helper function to update bounding box values
@@ -57,12 +63,15 @@ namespace agl {
     std::vector<GLfloat> _normals;
     // every 3 numbers defines a triangle's vertices
     std::vector<GLuint> _faces;
+    // every two numbers is a uv
+    std::vector<GLfloat> _texCoords;
     float _xmin;
     float _xmax;
     float _ymin;
     float _ymax;
     float _zmin;
     float _zmax;
+    int _hasTexCoords;  // 1 if file has UV coords, else 0;
   };
 }
 
